@@ -82,6 +82,20 @@ local tier7Combos = {
     "Allah"
 }
 
+-- Current list of spells that can contribute to combo
+WhiteListedSpells = {
+    "Fist of the White Tiger",
+    "Tiger Palm",
+    "Blackout Kick",
+    "Rising Sun Kick",
+    "Fists of Fury",
+    "Spinning Crane Kick",
+    "Chi Burst",
+    "Chi Wave",
+    "Crackling Jade Lightning",
+    "Whirling Dragon Punch"
+}
+
 -- Current state of combo
 local comboState = false
 -- Counts of combo
@@ -89,6 +103,9 @@ local combo = 0
 
 local hit_delta = 8
 local desc_delta = 8
+local previousSpell = nil
+
+local comboTimer = C_Timer.NewTimer(1, function() end)
 
 -- Hide hit frame when time expires
 local function HitFrame_OnUpdate()
@@ -250,7 +267,8 @@ end
 --
 local frame = CreateFrame("FRAME")
 frame:RegisterUnitEvent("UNIT_AURA", "player")
-frame:SetScript("OnEvent", function()
+frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+frame:SetScript("OnEvent", function(self, event, ...)
     -- Check and make sure the player is a Windwalker Monk
     local _, _, class = UnitClass("player")
     local spec = GetSpecialization()
@@ -258,27 +276,59 @@ frame:SetScript("OnEvent", function()
         return nil
     end
 
-    -- Check if player has Hit Combo buff
-    if SearchBuff("player", "Hit Combo", nil) ~= nil then
-        local _, _, count, _, duration, expireTime = SearchBuff("player", "Hit Combo", nil)
-        if duration + GetTime() ~= expireTime and count > 0 then
+    -- If Hit Combo is learned
+    if LearnedTalent(6, 1) then
+        -- Check if player has Hit Combo buff
+        if SearchBuff("player", "Hit Combo", nil) ~= nil then
+            local _, _, count, _, duration, expireTime = SearchBuff("player", "Hit Combo", nil)
+            if duration + GetTime() ~= expireTime and count > 0 then
+                return nil
+            end
+
+            if not comboState then
+                comboState = true
+                combo = 0
+            end
+
+            combo = combo + 1
+            ComboBreaker_DisplayCombo()
+
+        -- Hit Combo buff expired and ending the combo
+        elseif SearchBuff("player", "Hit Combo", nil) == nil and comboState then
+            comboState = false
+            ComboBreaker_SetTextColor(1, 1, 1)
+            HitFrame_DisplayMessage("C-c-c-c-combo breaker! Max combo: " .. combo .. "", 30)
+            combo = 0
+        end
+    else
+        local _, _, spellId = ...
+        local currentSpell = GetSpellInfo(spellId)
+
+        if spellId == nil then
             return nil
         end
 
-        if not comboState then
-            comboState = true
+        -- Compare previous spell and current spell
+        if previousSpell ~= currentSpell and WhiteListedSpell(currentSpell) then
+            previousSpell = currentSpell
+
+            if not comboState then
+                comboState = true
+                combo = 0
+            end
+
+            combo = combo + 1
+            ComboBreaker_DisplayCombo()
+            comboTimer:Cancel()
+            comboTimer = C_Timer.NewTimer(10, ComboExpired)
+        elseif previousSpell == currentSpell and WhiteListedSpell(currentSpell) then
+            comboTimer:Cancel()
+            comboState = false
+            ComboBreaker_SetTextColor(1, 1, 1)
+            HitFrame_DisplayMessage("C-c-c-c-combo breaker! Max combo: " .. combo .. "", 30)
             combo = 0
+            previousSpell = nil
         end
-
-        combo = combo + 1
-        ComboBreaker_DisplayCombo()
-
-    -- Hit Combo buff expired and ending the combo
-    elseif SearchBuff("player", "Hit Combo", nil) == nil and comboState then
-        comboState = false
-        ComboBreaker_SetTextColor(1, 1, 1)
-        HitFrame_DisplayMessage("C-c-c-c-combo breaker! Max combo: " .. combo .. "", 30)
-        combo = 0
     end
 end)
 
@@ -291,4 +341,27 @@ function SearchBuff(target, spellName, filter)
     end
 
     return nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
+end
+
+function LearnedTalent(row, col)
+    _, _, _, _, _, _, _, _, _, learned = GetTalentInfo(row, col, 1)
+    return learned
+end
+
+function WhiteListedSpell(spell)
+    for index, value in ipairs(WhiteListedSpells) do
+        if value == spell then
+            return true
+        end
+    end
+
+    return false
+end
+
+function ComboExpired()
+    comboState = false
+    ComboBreaker_SetTextColor(1, 1, 1)
+    HitFrame_DisplayMessage("C-c-c-c-combo breaker! Max combo: " .. combo .. "", 30)
+    combo = 0
+    previousSpell = nil
 end
