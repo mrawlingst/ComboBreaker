@@ -259,8 +259,8 @@ frame:SetScript("OnEvent", function()
     end
 
     -- Check if player has Hit Combo buff
-    if UnitBuff("player", GetSpellInfo(196740)) then
-        local _, _, _, count, _, duration, expireTime = UnitBuff("player", GetSpellInfo(196740))
+    if SearchBuff("player", "Hit Combo", nil) ~= nil then
+        local _, _, count, _, duration, expireTime = SearchBuff("player", "Hit Combo", nil)
         if duration + GetTime() ~= expireTime and count > 0 then
             return nil
         end
@@ -274,10 +274,21 @@ frame:SetScript("OnEvent", function()
         ComboBreaker_DisplayCombo()
 
     -- Hit Combo buff expired and ending the combo
-    elseif UnitBuff("player", GetSpellInfo(196740)) == nil and comboState then
+    elseif SearchBuff("player", "Hit Combo", nil) == nil and comboState then
         comboState = false
         ComboBreaker_SetTextColor(1, 1, 1)
         HitFrame_DisplayMessage("C-c-c-c-combo breaker! Max combo: " .. combo .. "", 30)
         combo = 0
     end
 end)
+
+function SearchBuff(target, spellName, filter)
+    for i = 1, 40 do
+        local name, icon, count, debuffType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId = UnitBuff(target, i, filter)
+        if name and name == spellName then
+            return name, icon, count, debuffType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId
+        end
+    end
+
+    return nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
+end

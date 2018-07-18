@@ -1,7 +1,7 @@
-## Interface: 70300
+## Interface: 80000
 ## Title: ComboBreaker
 ## Notes: Fun combo counter for Windwalker Monk with flavor texts
 ## Author: Zoids (Zularam of US-Ner'zhul)
-## Version: 0.1
+## Version: 0.2
 
 ComboBreaker.lua
