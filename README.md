@@ -1,6 +1,8 @@
 This addon is based on [ComboHitsCounter](https://wow.curseforge.com/projects/combohitscounter?gameCategorySlug=addons&projectID=253773) by Marcelino Porcar (@MalkiosED).
 
-The only difference is that it checks if the player is actually Windwalker Monk otherwise the addon will not work (note: this doesn't mean *break*) in any other specializations or classes. In addition, the sounds has been removed and the source code has been significantly rewritten and now supports more different flavor texts.
+### **IMPORTANT** - This addon **requires** talent [Hit Combo](https://www.wowhead.com/spell=196740/hit-combo) in order to work!
+
+The only difference is that it checks if the player is actually Windwalker Monk and talented Hit Combo otherwise the addon will not work (note: this doesn't mean *break*) in any other specializations or classes. In addition, the sounds has been removed and the source code has been significantly rewritten and now supports more different flavor texts.
 
 Type `/combobreaker` to move the position of frames.
 
