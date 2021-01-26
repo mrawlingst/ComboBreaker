@@ -2,6 +2,6 @@
 ## Title: ComboBreaker
 ## Notes: Fun combo counter for Windwalker Monk with flavor texts
 ## Author: Zoids (Zularam of US-Ner'zhul)
-## Version: 0.1
+## Version: 0.3
 
 ComboBreaker.lua
